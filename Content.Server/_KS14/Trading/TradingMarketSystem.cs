@@ -238,6 +238,10 @@ public sealed partial class TradingMarketSystem : EntitySystem
             asset.Name,
             asset.Price,
             hasCard && account.Positions.TryGetValue(asset.Symbol, out var held) ? held : 0,
+            asset.Liquidity,
+            asset.Volume,
+            (long) asset.Price * asset.Outstanding,
+            Math.Max(1, (int) Math.Ceiling(asset.Price * 0.01)),
             asset.History.ToArray())).ToArray();
         _ui.SetUiState(console, TradingConsoleUiKey.Key,
             new TradingConsoleUiState(name, hasCard ? account.Balance : 0, quotes, _news));
