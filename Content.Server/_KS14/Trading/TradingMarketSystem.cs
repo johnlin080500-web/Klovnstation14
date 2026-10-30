@@ -83,6 +83,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
 
     private sealed record PendingImpact(string Symbol, float Percent, TimeSpan Due, TradingNewsEntry Article);
 
+    private readonly HashSet<EntityUid> _cashAwaitingDeletion = new();
     private readonly Dictionary<EntityUid, Account> _accounts = new();
     private readonly Dictionary<string, Asset> _assets = new()
     {
@@ -198,6 +199,11 @@ public sealed partial class TradingMarketSystem : EntitySystem
             !TryComp<StackComponent>(args.Used, out var stack) ||
             stack.StackTypeId != "Credit" || stack.Unlimited || stack.Count <= 0 ||
             account.Balance > long.MaxValue - stack.Count)
+            return;
+
+        // QueueDel happens after this event. Reject duplicate interactions with the
+        // same entity in the same tick so one stack cannot credit multiple times.
+        if (!_cashAwaitingDeletion.Add(args.Used))
             return;
 
         account.Balance += stack.Count;
