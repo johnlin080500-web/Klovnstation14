@@ -9,6 +9,7 @@ using Content.Shared.Cargo.Components;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Interaction;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Stacks;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
@@ -26,6 +27,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
 {
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private StackSystem _stacks = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private NewsSystem _newsSystem = default!;
@@ -84,6 +86,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
     private sealed record PendingImpact(string Symbol, float Percent, TimeSpan Due, TradingNewsEntry Article);
 
     private readonly HashSet<EntityUid> _cashAwaitingDeletion = new();
+    private readonly Dictionary<EntityUid, string> _terminalNotice = new();
     private readonly Dictionary<EntityUid, Account> _accounts = new();
     private readonly Dictionary<string, Asset> _assets = new()
     {
@@ -214,13 +217,33 @@ public sealed partial class TradingMarketSystem : EntitySystem
 
     private void OnWithdraw(Entity<TradingConsoleComponent> ent, ref TradingWithdrawMessage args)
     {
-        if (args.Actor is not { Valid: true } ||
-            !TryGetAccount(ent.Owner, out var account, out _) ||
-            args.Amount <= 0 || args.Amount > account.Balance)
+        if (!TryGetAccount(ent.Owner, out var account, out _))
+        {
+            _terminalNotice[ent.Owner] = "Insert an ID card before withdrawing.";
+            UpdateUi(ent.Owner);
             return;
+        }
+
+        // A bounded withdrawal avoids spawning hundreds of piles in one BUI call.
+        if (args.Amount <= 0 || args.Amount > 100000 || args.Amount > account.Balance)
+        {
+            _terminalNotice[ent.Owner] = "Enter 1–100,000 spesos, up to your available balance.";
+            UpdateUi(ent.Owner);
+            return;
+        }
+
+        // The previous implementation spawned one stack at the terminal's tile,
+        // where it could be obscured and capped at a stack's maximum size.
+        // Spawn at the user's position, splitting into valid stacks.
+        var cash = _stacks.SpawnMultipleAtPosition(
+            new ProtoId<StackPrototype>("Credit"),
+            args.Amount,
+            Transform(args.Actor).Coordinates);
+        foreach (var pile in cash)
+            _hands.TryPickupAnyHand(args.Actor, pile, animate: false);
 
         account.Balance -= args.Amount;
-        _stacks.SpawnAtPosition(args.Amount, new ProtoId<StackPrototype>("Credit"), Transform(ent).Coordinates);
+        _terminalNotice[ent.Owner] = $"Withdrew {args.Amount:N0} spesos. Check your hands or the floor next to you.";
         UpdateAll();
     }
 
@@ -313,7 +336,8 @@ public sealed partial class TradingMarketSystem : EntitySystem
             new TradingConsoleUiState(name, hasCard, hasCard ? account.Balance : 0,
                 hasCard ? account.ReservedCash : 0, hasCard ? invested + account.Balance + account.ReservedCash : 0,
                 hasCard ? profit : 0, hasCard ? account.RealizedProfit : 0,
-                quotes, orders, _newsHistory.ToArray(), _news));
+                quotes, orders, _newsHistory.ToArray(), _news,
+                _terminalNotice.TryGetValue(console, out var notice) ? notice : string.Empty));
     }
 
     private void UpdateAll()
