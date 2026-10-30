@@ -1,0 +1,76 @@
+# KS14: Personal securities trading console, board and QM flatpack.
+- type: entity
+  parent: BaseComputer
+  id: ComputerTrading
+  name: stock exchange console
+  description: Trade fictional corporate shares with a personal ID-card brokerage account.
+  components:
+  - type: Sprite
+    layers:
+    - map: ["computerLayerBody"]
+      state: computer
+    - map: ["computerLayerKeyboard"]
+      state: generic_keyboard
+    - map: ["computerLayerScreen"]
+      state: request
+    - map: ["computerLayerKeys"]
+      state: generic_keys
+    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+      state: generic_panel_open
+  - type: Computer
+    board: TradingComputerCircuitboard
+  - type: TradingConsole
+  - type: ActivatableUI
+    singleUser: true
+    key: enum.TradingConsoleUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.TradingConsoleUiKey.Key:
+        type: TradingConsoleBoundUserInterface
+      enum.WiresUiKey.Key:
+        type: WiresBoundUserInterface
+  - type: ItemSlots
+    slots:
+      trading_id:
+        name: ID card
+        insertSound:
+          path: /Audio/Machines/terminal_insert_disc.ogg
+        ejectSound:
+          path: /Audio/Machines/terminal_insert_disc.ogg
+        whitelist:
+          components:
+          - IdCard
+  - type: ContainerContainer
+    containers:
+      board: !type:Container
+        ents: []
+      trading_id: !type:ContainerSlot {}
+
+- type: entity
+  parent: BaseComputerCircuitboard
+  id: TradingComputerCircuitboard
+  name: stock exchange computer board
+  description: A computer board for a corporate securities trading terminal.
+  components:
+  - type: Sprite
+    state: cpu_supply
+  - type: ComputerBoard
+    prototype: ComputerTrading
+  - type: StaticPrice
+    price: 750
+
+- type: entity
+  parent: BaseFlatpack
+  id: TradingConsoleFlatpack
+  name: stock exchange console flatpack
+  description: Use a multitool to deploy a securities trading console.
+  components:
+  - type: Flatpack
+    entity: ComputerTrading
+  - type: StaticPrice
+    price: 950
+
+- type: latheRecipe
+  parent: [ BaseCircuitboardRecipe, BaseSupplyMachineRecipeCategory ]
+  id: TradingComputerCircuitboard
+  result: TradingComputerCircuitboard
