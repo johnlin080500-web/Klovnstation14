@@ -5,6 +5,7 @@ using Content.Shared._KS14.Trading;
 using Content.Shared.Access.Components;
 using Content.Shared.Cargo.Components;
 using Content.Shared.Interaction;
+using Content.Shared.Containers.ItemSlot;
 using Content.Shared.Stacks;
 using Content.Server.Stack;
 using Robust.Server.GameObjects;
