@@ -217,6 +217,9 @@ public sealed partial class TradingMarketSystem : EntitySystem
 
     private void OnWithdraw(Entity<TradingConsoleComponent> ent, ref TradingWithdrawMessage args)
     {
+        if (args.Actor is not { Valid: true })
+            return;
+
         if (!TryGetAccount(ent.Owner, out var account, out _))
         {
             _terminalNotice[ent.Owner] = "Insert an ID card before withdrawing.";
