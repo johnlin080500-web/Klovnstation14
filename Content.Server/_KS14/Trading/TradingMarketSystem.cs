@@ -92,8 +92,9 @@ public sealed class TradingMarketSystem : EntitySystem
             return false;
 
         card = id;
-        if (!_accounts.TryGetValue(card, out account!))
-            _accounts[card] = account = new Account();
+        if (!_accounts.TryGetValue(card, out var existing))
+            _accounts[card] = existing = new Account();
+        account = existing;
         return true;
     }
 
