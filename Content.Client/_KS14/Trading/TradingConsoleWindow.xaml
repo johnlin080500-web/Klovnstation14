@@ -1,0 +1,153 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+               xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+               xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
+               xmlns:market="clr-namespace:Content.Client._KS14.Trading"
+               Title="NANOTRASEN SECURITIES // MARKET TERMINAL"
+               MinSize="850 580" SetSize="1010 740">
+  <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="8">
+    <PanelContainer>
+      <PanelContainer.PanelOverride>
+        <gfx:StyleBoxFlat BackgroundColor="#101b26" BorderThickness="1" BorderColor="#496a80"/>
+      </PanelContainer.PanelOverride>
+      <BoxContainer Orientation="Horizontal" Margin="12 8" SeparationOverride="10">
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True">
+          <Label Text="NANONEWS SECURITIES EXCHANGE" StyleClasses="LabelHeadingBigger"/>
+          <Label Text="INTRA-STATION CORPORATE EQUITIES  /  SS14 MARKET" StyleClasses="LabelSubText"/>
+        </BoxContainer>
+        <Button Name="GuideButton" Text="Trading Guide" MinWidth="120" StyleClasses="HelpButton"/>
+      </BoxContainer>
+    </PanelContainer>
+    <TabContainer Name="Tabs" HorizontalExpand="True" VerticalExpand="True">
+      <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
+        <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="12" HorizontalExpand="True">
+          <PanelContainer>
+            <PanelContainer.PanelOverride>
+              <gfx:StyleBoxFlat BackgroundColor="#1b2632" BorderThickness="1" BorderColor="#36475a"/>
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical" Margin="14" SeparationOverride="10">
+              <Label Text="BROKERAGE ACCOUNT" StyleClasses="LabelHeading"/>
+              <Label Name="AccountLabel" Text="No card inserted"/>
+              <BoxContainer Orientation="Horizontal" SeparationOverride="12">
+                <Label Name="BalanceLabel" Text="Available: 0 sp" StyleClasses="FontLarge"/>
+                <Control HorizontalExpand="True"/>
+                <Button Name="CardButton" Text="Insert / Eject ID" MinWidth="160"/>
+              </BoxContainer>
+              <Label Name="PortfolioLabel" Text="Portfolio value: 0 sp"/>
+            </BoxContainer>
+          </PanelContainer>
+          <PanelContainer>
+            <PanelContainer.PanelOverride>
+              <gfx:StyleBoxFlat BackgroundColor="#202830" BorderThickness="1" BorderColor="#36475a"/>
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical" Margin="14" SeparationOverride="8">
+              <Label Text="CASH WITHDRAWAL" StyleClasses="LabelHeading"/>
+              <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+                <LineEdit Name="WithdrawAmount" PlaceHolder="Amount of spesos" HorizontalExpand="True"/>
+                <Button Name="WithdrawButton" Text="WITHDRAW" MinWidth="128"/>
+              </BoxContainer>
+              <RichTextLabel Name="WithdrawNotice" MaxWidth="820" HorizontalExpand="True"/>
+            </BoxContainer>
+          </PanelContainer>
+        </BoxContainer>
+      </ScrollContainer>
+      <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
+        <BoxContainer Orientation="Vertical" Margin="8" SeparationOverride="8" HorizontalExpand="True">
+          <BoxContainer Orientation="Horizontal" SeparationOverride="10">
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True">
+              <Label Name="ChartNameLabel" Text="Select a security" StyleClasses="LabelHeadingBigger"/>
+              <Label Name="ChartPriceLabel" Text="No market quote" StyleClasses="FontLarge"/>
+            </BoxContainer>
+            <BoxContainer Orientation="Vertical">
+              <Label Name="MarketStatusLabel" Text="MARKET OPEN"/>
+              <Label Name="MarketRiskLabel" Text="VOLATILITY --" StyleClasses="LabelSubText"/>
+            </BoxContainer>
+          </BoxContainer>
+          <PanelContainer>
+            <PanelContainer.PanelOverride>
+              <gfx:StyleBoxFlat BackgroundColor="#101a23" BorderThickness="1" BorderColor="#37566d"/>
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical" Margin="8" SeparationOverride="6">
+              <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                <Button Name="LineButton" Text="LINE"/>
+                <Button Name="BarButton" Text="BAR"/>
+                <Button Name="CandleButton" Text="CANDLE"/>
+                <Control HorizontalExpand="True"/>
+                <Button Name="OneMinuteButton" Text="1M"/>
+                <Button Name="FiveMinuteButton" Text="5M"/>
+                <Button Name="FifteenMinuteButton" Text="15M"/>
+                <Button Name="AllButton" Text="ALL"/>
+              </BoxContainer>
+              <market:TradingPriceGraphControl Name="PriceGraph" SetHeight="218" MinWidth="590" HorizontalExpand="True" MouseFilter="Stop"/>
+            </BoxContainer>
+          </PanelContainer>
+          <PanelContainer>
+            <PanelContainer.PanelOverride>
+              <gfx:StyleBoxFlat BackgroundColor="#1b2632" BorderThickness="1" BorderColor="#37566d"/>
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="4">
+              <Label Text="MARKET DATA  /  SELECTED POINT" StyleClasses="LabelSubText"/>
+              <RichTextLabel Name="GraphDetails" MaxWidth="880" HorizontalExpand="True"/>
+              <RichTextLabel Name="MarketDetails" MaxWidth="880" HorizontalExpand="True"/>
+            </BoxContainer>
+          </PanelContainer>
+          <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+            <Label Text="LISTED SECURITIES" StyleClasses="LabelHeading"/>
+            <Control HorizontalExpand="True"/>
+            <LineEdit Name="SearchField" PlaceHolder="Search ticker or company..." MinWidth="240"/>
+          </BoxContainer>
+          <BoxContainer Name="QuoteList" Orientation="Vertical" SeparationOverride="4" HorizontalExpand="True"/>
+          <PanelContainer>
+            <PanelContainer.PanelOverride>
+              <gfx:StyleBoxFlat BackgroundColor="#111d28" BorderThickness="1" BorderColor="#2c455a"/>
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical" Margin="10">
+              <Label Text="LATEST NANONEWS" StyleClasses="LabelSubText"/>
+              <RichTextLabel Name="LatestNews" MaxWidth="880" HorizontalExpand="True"/>
+            </BoxContainer>
+          </PanelContainer>
+        </BoxContainer>
+      </ScrollContainer>
+      <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
+        <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="10" HorizontalExpand="True">
+          <Label Text="CONDITIONAL ORDER TICKET" StyleClasses="LabelHeadingBigger"/>
+          <Label Name="OrderSymbolLabel" Text="Selected: NT"/>
+          <GridContainer Columns="2" HSeparationOverride="12" VSeparationOverride="8">
+            <Label Text="Quantity (shares)"/>
+            <LineEdit Name="OrderQuantity" Text="1" MinWidth="200"/>
+            <Label Text="Limit / stop price (sp)"/>
+            <LineEdit Name="OrderPrice" Text="100" MinWidth="200"/>
+          </GridContainer>
+          <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+            <Label Text="Expires after:"/>
+            <Button Name="ExpireFive" Text="5 MIN"/>
+            <Button Name="ExpireFifteen" Text="15 MIN"/>
+            <Button Name="ExpireThirty" Text="30 MIN"/>
+          </BoxContainer>
+          <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+            <Button Name="LimitBuyButton" Text="PLACE LIMIT BUY"/>
+            <Button Name="LimitSellButton" Text="PLACE LIMIT SELL"/>
+            <Button Name="StopLossButton" Text="PLACE STOP-LOSS"/>
+          </BoxContainer>
+          <Label Text="OPEN ORDERS" StyleClasses="LabelHeading"/>
+          <BoxContainer Name="OrderList" Orientation="Vertical" SeparationOverride="6"/>
+        </BoxContainer>
+      </ScrollContainer>
+      <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="8" HorizontalExpand="True">
+        <Label Text="NANONEWS // CORPORATE BULLETINS" StyleClasses="LabelHeadingBigger"/>
+        <PanelContainer VerticalExpand="False">
+          <PanelContainer.PanelOverride>
+            <gfx:StyleBoxFlat BackgroundColor="#172638" BorderThickness="1" BorderColor="#37566d"/>
+          </PanelContainer.PanelOverride>
+          <ScrollContainer HScrollEnabled="False" SetHeight="140">
+            <BoxContainer Orientation="Vertical" Margin="10">
+              <RichTextLabel Name="NewsStory" MaxWidth="860" HorizontalExpand="True"/>
+            </BoxContainer>
+          </ScrollContainer>
+        </PanelContainer>
+        <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+          <BoxContainer Name="NewsList" Orientation="Vertical" SeparationOverride="6"/>
+        </ScrollContainer>
+      </BoxContainer>
+    </TabContainer>
+  </BoxContainer>
+</controls:FancyWindow>
