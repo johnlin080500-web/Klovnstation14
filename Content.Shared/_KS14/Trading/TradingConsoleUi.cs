@@ -15,14 +15,22 @@ public sealed class TradingQuote
     public string Name;
     public int Price;
     public int Held;
+    public int Liquidity;
+    public int Volume;
+    public long MarketCap;
+    public int Spread;
     public int[] History;
 
-    public TradingQuote(string symbol, string name, int price, int held, int[] history)
+    public TradingQuote(string symbol, string name, int price, int held, int liquidity, int volume, long marketCap, int spread, int[] history)
     {
         Symbol = symbol;
         Name = name;
         Price = price;
         Held = held;
+        Liquidity = liquidity;
+        Volume = volume;
+        MarketCap = marketCap;
+        Spread = spread;
         History = history;
     }
 }
