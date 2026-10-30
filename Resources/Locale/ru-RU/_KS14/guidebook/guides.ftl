@@ -8,3 +8,5 @@ guide-entry-sensors = Датчики
 guide-entry-shuttle-console = Консоль шаттла
 guide-entry-surgery = Хирургия
 guide-entry-chemical-fires = Химические пожары
+
+guide-entry-trading-stock-exchange = Фондовая биржа
