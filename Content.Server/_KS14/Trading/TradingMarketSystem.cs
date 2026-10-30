@@ -10,7 +10,6 @@ using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Stacks;
 using Content.Server.Stack;
 using Content.Server.MassMedia.Systems;
-using Content.Server.Station.Systems;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
@@ -31,7 +30,6 @@ public sealed partial class TradingMarketSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private NewsSystem _newsSystem = default!;
-    [Dependency] private StationSystem _stationSystem = default!;
 
     private sealed class Account
     {
