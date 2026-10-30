@@ -22,7 +22,7 @@ namespace Content.Server._KS14.Trading;
 /// its account; the account is kept on that card, never on a mutable character name.
 /// All amounts are integer spesos; orders are fully paid, with no short selling.
 /// </summary>
-public sealed class TradingMarketSystem : EntitySystem
+public sealed partial class TradingMarketSystem : EntitySystem
 {
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private StackSystem _stacks = default!;
