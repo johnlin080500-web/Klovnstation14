@@ -21,6 +21,8 @@ public enum TradingChartType : byte
 public sealed class TradingPriceGraphControl : Control
 {
     public int[] History { get; set; } = Array.Empty<int>();
+    public int[] HistoryTimes { get; set; } = Array.Empty<int>();
+    public int[] EventTimes { get; set; } = Array.Empty<int>();
     public int SamplesToShow { get; set; }
     public TradingChartType ChartType { get; set; }
     public event Action<int, int>? OnSampleSelected;
@@ -38,8 +40,23 @@ public sealed class TradingPriceGraphControl : Control
         var width = Size.X * UIScale;
         var cursor = (UserInterfaceManager.MousePositionScaled.Position * UIScale) - GlobalPixelPosition;
         var t = Math.Clamp((cursor.X - 10f * UIScale) / Math.Max(1, width - 20f * UIScale), 0, 1);
-        var index = Math.Clamp((int) Math.Round(t * (count - 1)), 0, count - 1);
-        var selected = History.Length - count + index;
+        var start = History.Length - count;
+        var hasTime = HistoryTimes.Length == History.Length;
+        var first = hasTime ? HistoryTimes[start] : start * 15;
+        var last = hasTime ? HistoryTimes[^1] : (History.Length - 1) * 15;
+        var selected = start;
+        var bestDistance = float.MaxValue;
+        for (var i = 0; i < count; i++)
+        {
+            var seconds = hasTime ? HistoryTimes[start + i] : (start + i) * 15;
+            var samplePosition = last == first ? (count == 1 ? 0.5f : (float) i / (count - 1))
+                : (float) (seconds - first) / (last - first);
+            var distance = Math.Abs(t - samplePosition);
+            if (distance >= bestDistance)
+                continue;
+            bestDistance = distance;
+            selected = start + i;
+        }
         OnSampleSelected?.Invoke(selected, History[selected]);
         args.Handle();
     }
@@ -57,6 +74,9 @@ public sealed class TradingPriceGraphControl : Control
             return;
 
         var start = History.Length - count;
+        var hasTime = HistoryTimes.Length == History.Length;
+        var firstTime = hasTime ? HistoryTimes[start] : start * 15;
+        var lastTime = hasTime ? HistoryTimes[^1] : (History.Length - 1) * 15;
         var min = int.MaxValue;
         var max = int.MinValue;
         for (var i = start; i < History.Length; i++)
@@ -81,10 +101,22 @@ public sealed class TradingPriceGraphControl : Control
             handle.DrawLine(new Vector2(left.X, y), new Vector2(right.X, y), grid);
         }
 
+        // NanoNews article markers align to actual event publication seconds.
+        foreach (var time in EventTimes)
+        {
+            if (time < firstTime || time > lastTime || lastTime == firstTime)
+                continue;
+            var eventX = left.X + (right.X - left.X) * (time - firstTime) / (float) (lastTime - firstTime);
+            handle.DrawLine(new Vector2(eventX, left.Y), new Vector2(eventX, right.Y),
+                Color.FromHex("#e9c464"));
+        }
+
         Vector2 Point(int index, int value)
         {
-            var x = count == 1 ? (left.X + right.X) / 2f
-                : left.X + (right.X - left.X) * index / (count - 1f);
+            var seconds = hasTime ? HistoryTimes[start + index] : (start + index) * 15;
+            var fraction = lastTime == firstTime ? (count == 1 ? 0.5f : (float) index / (count - 1))
+                : (float) (seconds - firstTime) / (lastTime - firstTime);
+            var x = left.X + (right.X - left.X) * fraction;
             var y = right.Y - (right.Y - left.Y) * (value - min) / (max - (float) min);
             return new Vector2(x, y);
         }
