@@ -111,7 +111,7 @@ public sealed class TradingConsoleUiState : BoundUserInterfaceState
 {
     public string CardName;
     public bool HasCard;
-    public int Balance;
+    public long Balance;
     public long ReservedCash;
     public long PortfolioValue;
     public long UnrealizedProfit;
@@ -121,7 +121,7 @@ public sealed class TradingConsoleUiState : BoundUserInterfaceState
     public TradingNewsEntry[] NewsHistory;
     public string News;
 
-    public TradingConsoleUiState(string cardName, bool hasCard, int balance, long reservedCash,
+    public TradingConsoleUiState(string cardName, bool hasCard, long balance, long reservedCash,
         long portfolioValue, long unrealizedProfit, long realizedProfit, TradingQuote[] quotes,
         TradingOrderSummary[] orders, TradingNewsEntry[] newsHistory, string news)
     {
