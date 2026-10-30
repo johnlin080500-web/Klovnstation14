@@ -9,6 +9,8 @@ using Content.Shared.Interaction;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Stacks;
 using Content.Server.Stack;
+using Content.Server.MassMedia.Systems;
+using Content.Server.Station.Systems;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
@@ -28,6 +30,8 @@ public sealed partial class TradingMarketSystem : EntitySystem
     [Dependency] private StackSystem _stacks = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private NewsSystem _newsSystem = default!;
+    [Dependency] private StationSystem _stationSystem = default!;
 
     private sealed class Account
     {
@@ -40,6 +44,9 @@ public sealed partial class TradingMarketSystem : EntitySystem
         public readonly string Symbol;
         public readonly string Name;
         public int Price;
+        public int Outstanding = 50000;
+        public int Liquidity = 1200;
+        public int Volume;
         public readonly List<int> History = new();
         public Asset(string symbol, string name, int price)
         {
@@ -61,6 +68,8 @@ public sealed partial class TradingMarketSystem : EntitySystem
         ["GRLX"] = new("GRLX", "Gorlex Marauders", 58)
     };
 
+    private sealed record PendingImpact(string Symbol, float Percent, TimeSpan Due, string Title);
+    private readonly List<PendingImpact> _pendingImpacts = new();
     private TimeSpan _nextTick;
     private string _news = "Corporate exchange connected. All share prices are fictional.";
     private const string CardSlot = "trading_id";
@@ -96,6 +105,32 @@ public sealed partial class TradingMarketSystem : EntitySystem
             _accounts[card] = existing = new Account();
         account = existing;
         return true;
+    }
+
+    /// <summary>
+    /// NanoNews releases publish immediately. The market reaction is delayed, including
+    /// for rules that have already ended by the time the change settles.
+    /// </summary>
+    public void ScheduleCorporateNews(string symbol, string title, string body,
+        float minPercent, float maxPercent, int minDelaySeconds, int maxDelaySeconds)
+    {
+        if (!_assets.ContainsKey(symbol))
+            return;
+
+        minPercent = Math.Clamp(minPercent, -70f, 70f);
+        maxPercent = Math.Clamp(maxPercent, minPercent, 70f);
+        minDelaySeconds = Math.Clamp(minDelaySeconds, 60, 900);
+        maxDelaySeconds = Math.Clamp(maxDelaySeconds, minDelaySeconds, 900);
+        var impact = _random.NextFloat(minPercent, maxPercent);
+        var delay = _random.Next(minDelaySeconds, maxDelaySeconds + 1);
+        _pendingImpacts.Add(new PendingImpact(symbol, impact, _timing.CurTime + TimeSpan.FromSeconds(delay), title));
+
+        _news = $"NANONEWS | {title}: {body} Market reaction expected within {minDelaySeconds / 60}-{(maxDelaySeconds + 59) / 60} minutes.";
+        var stations = EntityQueryEnumerator<Content.Shared.MassMedia.Components.StationNewsComponent>();
+        while (stations.MoveNext(out var station, out _))
+            _newsSystem.TryAddNews(station, title, body, out _, "NanoNews Corporate Desk");
+
+        UpdateAll();
     }
 
     private void OnMarketRuleStarted(EntityUid uid, TradingMarketImpactComponent component, ref GameRuleStartedEvent args)
@@ -157,6 +192,8 @@ public sealed partial class TradingMarketSystem : EntitySystem
 
         var cost = (long) asset.Price * args.Quantity;
         account.Positions.TryGetValue(asset.Symbol, out var held);
+        if (args.Buy && args.Quantity > asset.Liquidity)
+            return;
         if (args.Buy)
         {
             if (cost > account.Balance || held > int.MaxValue - args.Quantity)
@@ -172,6 +209,11 @@ public sealed partial class TradingMarketSystem : EntitySystem
             account.Balance += (int) cost;
         }
 
+        asset.Volume = Math.Min(int.MaxValue - args.Quantity, asset.Volume) + args.Quantity;
+        if (args.Buy)
+            asset.Liquidity -= args.Quantity;
+        else
+            asset.Liquidity = Math.Min(5000, asset.Liquidity + args.Quantity);
         UpdateAll();
     }
 
@@ -211,6 +253,22 @@ public sealed partial class TradingMarketSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        for (var i = _pendingImpacts.Count - 1; i >= 0; i--)
+        {
+            var news = _pendingImpacts[i];
+            if (_timing.CurTime < news.Due)
+                continue;
+            _pendingImpacts.RemoveAt(i);
+            if (!_assets.TryGetValue(news.Symbol, out var affected))
+                continue;
+            affected.Price = Math.Max(1, (int) Math.Round(affected.Price * (1 + news.Percent / 100f)));
+            affected.History.Add(affected.Price);
+            if (affected.History.Count > 240)
+                affected.History.RemoveAt(0);
+            _news = $"NANONEWS UPDATE | {news.Title}: {news.Symbol} moved {news.Percent:+0.0;-0.0;0}%";
+            UpdateAll();
+        }
+
         if (_timing.CurTime < _nextTick)
             return;
 
@@ -220,6 +278,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
             var percent = _random.NextFloat(-0.012f, 0.012f);
             asset.Price = Math.Max(1, (int) Math.Round(asset.Price * (1 + percent)));
             asset.History.Add(asset.Price);
+            asset.Liquidity = Math.Min(5000, asset.Liquidity + 5);
             if (asset.History.Count > 240)
                 asset.History.RemoveAt(0);
         }
