@@ -191,9 +191,17 @@ public sealed partial class TradingMarketSystem : EntitySystem
 
     private void OnOpened(Entity<TradingConsoleComponent> ent, ref BoundUIOpenedEvent args) => UpdateUi(ent.Owner);
 
-    private void OnContainerChanged(EntityUid uid, TradingConsoleComponent comp, EntInsertedIntoContainerMessage args) => UpdateUi(uid);
+    private void OnContainerChanged(EntityUid uid, TradingConsoleComponent comp, EntInsertedIntoContainerMessage args)
+    {
+        _terminalNotice.Remove(uid);
+        UpdateUi(uid);
+    }
 
-    private void OnContainerChanged(EntityUid uid, TradingConsoleComponent comp, EntRemovedFromContainerMessage args) => UpdateUi(uid);
+    private void OnContainerChanged(EntityUid uid, TradingConsoleComponent comp, EntRemovedFromContainerMessage args)
+    {
+        _terminalNotice.Remove(uid);
+        UpdateUi(uid);
+    }
 
     private void OnCashInserted(EntityUid uid, TradingConsoleComponent comp, ref InteractUsingEvent args)
     {
