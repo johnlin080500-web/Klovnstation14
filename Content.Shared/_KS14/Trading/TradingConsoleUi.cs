@@ -120,10 +120,11 @@ public sealed class TradingConsoleUiState : BoundUserInterfaceState
     public TradingOrderSummary[] Orders;
     public TradingNewsEntry[] NewsHistory;
     public string News;
+    public string Notice;
 
     public TradingConsoleUiState(string cardName, bool hasCard, long balance, long reservedCash,
         long portfolioValue, long unrealizedProfit, long realizedProfit, TradingQuote[] quotes,
-        TradingOrderSummary[] orders, TradingNewsEntry[] newsHistory, string news)
+        TradingOrderSummary[] orders, TradingNewsEntry[] newsHistory, string news, string notice)
     {
         CardName = cardName;
         HasCard = hasCard;
@@ -136,6 +137,7 @@ public sealed class TradingConsoleUiState : BoundUserInterfaceState
         Orders = orders;
         NewsHistory = newsHistory;
         News = news;
+        Notice = notice;
     }
 }
 
