@@ -305,8 +305,10 @@ public sealed partial class TradingConsoleWindow : FancyWindow
             };
             panel.AddChild(col);
             var row = new BoxContainer { Orientation = LayoutOrientation.Horizontal };
-            row.AddChild(TextLabel($"t+{entry.PublishedSeconds / 60:00}:{entry.PublishedSeconds % 60:00}  " +
-                $"[{entry.Symbol}]  {entry.Title}", true));
+            var headline = new RichTextLabel { MaxWidth = 740, HorizontalExpand = true };
+            SetText(headline, $"t+{entry.PublishedSeconds / 60:00}:{entry.PublishedSeconds % 60:00}  " +
+                $"[{entry.Symbol}]  {entry.Title}");
+            row.AddChild(headline);
 
             var read = new Button { Text = "READ", MinWidth = 70 };
             read.OnPressed += _ =>
