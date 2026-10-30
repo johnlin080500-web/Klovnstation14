@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Numerics;
+using Content.Shared.Containers.ItemSlots;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._KS14.Trading;
 using Robust.Client.UserInterface.Controls;
@@ -19,6 +21,11 @@ public sealed class TradingConsoleWindow : FancyWindow
     private readonly Label _account = new();
     private readonly Label _balance = new();
     private readonly Label _news = new();
+    private readonly Label _chartName = new();
+    private readonly TradingPriceGraphControl _graph = new() { MinSize = new Vector2(0, 185), HorizontalExpand = true };
+    private string _selectedSymbol = "NT";
+    private int _historySamples = 20;
+    public event Action? OnCardAction;
     private readonly BoxContainer _quotes = new() { Orientation = LayoutOrientation.Vertical };
     private readonly LineEdit _search = new() { PlaceHolder = "Search company or ticker..." };
     private readonly LineEdit _amount = new() { PlaceHolder = "Amount of spesos" };
@@ -38,6 +45,9 @@ public sealed class TradingConsoleWindow : FancyWindow
 
         var banking = new BoxContainer { Orientation = LayoutOrientation.Vertical };
         banking.AddChild(new Label { Text = "Insert an ID card into the terminal slot. Deposit cash by using a cash stack on the console." });
+        var cardButton = new Button { Text = "Insert / Eject ID card" };
+        cardButton.OnPressed += _ => OnCardAction?.Invoke();
+        banking.AddChild(cardButton);
         banking.AddChild(_account);
         banking.AddChild(_balance);
         banking.AddChild(_amount);
@@ -53,6 +63,20 @@ public sealed class TradingConsoleWindow : FancyWindow
 
         var trading = new BoxContainer { Orientation = LayoutOrientation.Vertical };
         trading.AddChild(_search);
+        trading.AddChild(_chartName);
+        trading.AddChild(_graph);
+        var chartPeriods = new BoxContainer { Orientation = LayoutOrientation.Horizontal };
+        foreach (var (caption, count) in new (string, int)[] { ("1m", 4), ("5m", 20), ("15m", 60), ("All", 0) })
+        {
+            var button = new Button { Text = caption };
+            button.OnPressed += _ =>
+            {
+                _historySamples = count;
+                RefreshChart();
+            };
+            chartPeriods.AddChild(button);
+        }
+        trading.AddChild(chartPeriods);
         trading.AddChild(new Label { Text = "Share prices in spesos. Enter quantity and buy or sell; no borrowing or short selling." });
         var scroll = new ScrollContainer { VerticalExpand = true };
         scroll.AddChild(_quotes);
@@ -71,6 +95,22 @@ public sealed class TradingConsoleWindow : FancyWindow
         _balance.Text = $"Available balance: {state.Balance} spesos";
         _news.Text = state.News;
         RefreshQuotes();
+        RefreshChart();
+    }
+
+    private void RefreshChart()
+    {
+        var quote = _state?.Quotes.FirstOrDefault(q => q.Symbol == _selectedSymbol);
+        if (quote == null)
+            return;
+
+        _graph.History = quote.History;
+        _graph.SamplesToShow = _historySamples;
+        var samples = _historySamples == 0 ? quote.History.Length : Math.Min(_historySamples, quote.History.Length);
+        var window = quote.History.Skip(Math.Max(0, quote.History.Length - samples)).ToArray();
+        var low = window.Length == 0 ? quote.Price : window.Min();
+        var high = window.Length == 0 ? quote.Price : window.Max();
+        _chartName.Text = $"{quote.Name} ({quote.Symbol}) | {quote.Price} sp | low {low} / high {high} sp";
     }
 
     private void RefreshQuotes()
@@ -104,10 +144,14 @@ public sealed class TradingConsoleWindow : FancyWindow
             sell.OnPressed += _ => SendOrder(quote.Symbol, quantity.Text, false);
             line.AddChild(buy);
             line.AddChild(sell);
+            var chartButton = new Button { Text = "Chart" };
+            chartButton.OnPressed += _ =>
+            {
+                _selectedSymbol = quote.Symbol;
+                RefreshChart();
+            };
+            line.AddChild(chartButton);
             _quotes.AddChild(line);
-
-            var recent = quote.History.Length > 12 ? quote.History[^12..] : quote.History;
-            _quotes.AddChild(new Label { Text = "Recent quotes: " + string.Join(" / ", recent) });
         }
     }
 
