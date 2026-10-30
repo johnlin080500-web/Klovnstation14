@@ -31,7 +31,7 @@ public sealed class TradingConsoleWindow : FancyWindow
         SetSize = new System.Numerics.Vector2(850, 610);
 
         var root = new BoxContainer { Orientation = LayoutOrientation.Vertical };
-        Contents.AddChild(root);
+        ContentsContainer.AddChild(root);
 
         var tabs = new TabContainer { VerticalExpand = true };
         root.AddChild(tabs);
