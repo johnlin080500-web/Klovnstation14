@@ -39,7 +39,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
 
     private sealed class Account
     {
-        public int Balance;
+        public long Balance;
         public long ReservedCash;
         public long RealizedProfit;
         public readonly Dictionary<string, int> Positions = new();
@@ -55,7 +55,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
         public TradingOrderType Type;
         public int Quantity;
         public int TriggerPrice;
-        public int ReservedCash;
+        public long ReservedCash;
         public TimeSpan ExpiresAt;
     }
 
@@ -197,7 +197,7 @@ public sealed partial class TradingMarketSystem : EntitySystem
             !HasComp<CashComponent>(args.Used) ||
             !TryComp<StackComponent>(args.Used, out var stack) ||
             stack.StackTypeId != "Credit" || stack.Unlimited || stack.Count <= 0 ||
-            account.Balance > int.MaxValue - stack.Count)
+            account.Balance > long.MaxValue - stack.Count)
             return;
 
         account.Balance += stack.Count;
