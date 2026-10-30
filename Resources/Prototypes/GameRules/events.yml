@@ -312,6 +312,10 @@
   id: GasLeak
   parent: BaseStationEventShortDelay
   components:
+  - type: TradingMarketImpact
+    symbol: INT
+    percent: 16
+    headline: Interdyne emergency pharmaceutical demand surges following gas leak
   - type: StationEvent
     startAnnouncement: station-event-gas-leak-start-announcement
     startAudio:
@@ -335,6 +339,10 @@
   id: PowerGridCheck
   parent: BaseStationEventShortDelay
   components:
+  - type: TradingMarketImpact
+    symbol: CYB
+    percent: -12
+    headline: Station-wide grid fault reduces CyberSun electronics outlook
   - type: StationEvent
     weight: 5
     startAnnouncement: station-event-power-grid-check-start-announcement
@@ -351,6 +359,10 @@
   parent: BaseGameRule
   id: SolarFlare
   components:
+  - type: TradingMarketImpact
+    symbol: NT
+    percent: -18
+    headline: Solar radiation disrupts NanoTrasen communications and supply forecasts
   - type: StationEvent
     weight: 8
     startAnnouncement: station-event-solar-flare-start-announcement
