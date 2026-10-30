@@ -233,8 +233,8 @@ public sealed class TradingConsoleWindow : FancyWindow
                 PlaceHolder = "Qty"
             };
             line.AddChild(quantity);
-            var buy = new Button { Text = "Buy" };
-            var sell = new Button { Text = "Sell" };
+            var buy = new Button { Text = "Buy", Disabled = quote.HaltSeconds > 0 };
+            var sell = new Button { Text = "Sell", Disabled = quote.HaltSeconds > 0 };
             buy.OnPressed += _ => SendOrder(quote.Symbol, quantity.Text, true);
             sell.OnPressed += _ => SendOrder(quote.Symbol, quantity.Text, false);
             line.AddChild(buy);
