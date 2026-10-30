@@ -17,10 +17,21 @@ public sealed class TradingConsoleWindow : FancyWindow
 {
     public event Action<string, int, bool>? OnTrade;
     public event Action<int>? OnWithdraw;
+    public event Action<string, TradingOrderType, int, int, int>? OnPendingOrder;
+    public event Action<int>? OnCancelPendingOrder;
 
     private readonly Label _account = new();
     private readonly Label _balance = new();
     private readonly Label _news = new();
+    private readonly Label _portfolioStats = new();
+    private readonly Label _riskStatus = new();
+    private readonly Label _selectedNews = new() { Text = "Choose a NanoNews article to read it." };
+    private readonly BoxContainer _pendingOrders = new() { Orientation = LayoutOrientation.Vertical };
+    private readonly BoxContainer _newsArchive = new() { Orientation = LayoutOrientation.Vertical };
+    private readonly Label _orderStock = new();
+    private readonly LineEdit _pendingQuantity = new() { Text = "1", PlaceHolder = "Shares" };
+    private readonly LineEdit _pendingPrice = new() { Text = "100", PlaceHolder = "Target price in spesos" };
+    private int _orderDurationMinutes = 15;
     private readonly Label _chartName = new();
     private readonly Label _marketStats = new();
     private readonly Label _inspect = new() { Text = "Click a point on the graph for time and price details." };
@@ -52,6 +63,7 @@ public sealed class TradingConsoleWindow : FancyWindow
         banking.AddChild(cardButton);
         banking.AddChild(_account);
         banking.AddChild(_balance);
+        banking.AddChild(_portfolioStats);
         banking.AddChild(_amount);
         var withdrawal = new Button { Text = "Withdraw cash" };
         withdrawal.OnPressed += _ =>
@@ -67,12 +79,18 @@ public sealed class TradingConsoleWindow : FancyWindow
         trading.AddChild(_search);
         trading.AddChild(_chartName);
         trading.AddChild(_marketStats);
+        trading.AddChild(_riskStatus);
         trading.AddChild(_graph);
         trading.AddChild(_inspect);
         _graph.OnSampleSelected += (index, price) =>
         {
-            var age = (_graph.History.Length - 1 - index) * 15;
-            _inspect.Text = $"Selected: {price} sp | {age / 60}m {age % 60}s before latest quote (sample {index + 1})";
+            var selectedTime = _graph.HistoryTimes.Length > index ? _graph.HistoryTimes[index] : index * 15;
+            var candidate = _state?.NewsHistory
+                .Where(n => n.Symbol == _selectedSymbol && Math.Abs(n.PublishedSeconds - selectedTime) <= 120)
+                .OrderBy(n => Math.Abs(n.PublishedSeconds - selectedTime))
+                .FirstOrDefault();
+            var explanation = candidate == null ? "No corporate announcement within two minutes." : candidate.Title + ": " + candidate.Description;
+            _inspect.Text = $"Price: {price} sp | market time {selectedTime / 60}m {selectedTime % 60}s | {explanation}";
         };
         var chartModes = new BoxContainer { Orientation = LayoutOrientation.Horizontal };
         foreach (var (caption, mode) in new (string, TradingChartType)[] { ("Line", TradingChartType.Line), ("Bar", TradingChartType.Bar), ("Candles", TradingChartType.Candle) })
@@ -102,6 +120,57 @@ public sealed class TradingConsoleWindow : FancyWindow
         tabs.AddChild(trading);
         tabs.SetTabTitle(1, "Trading");
 
+        // Conditional orders are held on the server. Long buys reserve credits;
+        // limit/stop sells reserve owned shares to prevent double-spending.
+        var orders = new BoxContainer { Orientation = LayoutOrientation.Vertical };
+        orders.AddChild(new Label { Text = "Limit orders use bid/ask quotes. Stop-loss orders sell at the available bid, which may be worse than your trigger price." });
+        orders.AddChild(_orderStock);
+        orders.AddChild(new Label { Text = "Quantity of shares:" });
+        orders.AddChild(_pendingQuantity);
+        orders.AddChild(new Label { Text = "Limit / stop trigger price (spesos):" });
+        orders.AddChild(_pendingPrice);
+        orders.AddChild(new Label { Text = "Order expires after:" });
+        var durationOptions = new BoxContainer { Orientation = LayoutOrientation.Horizontal };
+        foreach (var minutes in new[] { 5, 15, 30 })
+        {
+            var expiry = new Button { Text = minutes + " minutes" };
+            expiry.OnPressed += _ =>
+            {
+                _orderDurationMinutes = minutes;
+                _orderStock.Text = $"Selected: {_selectedSymbol} | expiration: {_orderDurationMinutes}m";
+            };
+            durationOptions.AddChild(expiry);
+        }
+        orders.AddChild(durationOptions);
+        var choices = new BoxContainer { Orientation = LayoutOrientation.Horizontal };
+        foreach (var (text, type) in new (string, TradingOrderType)[]
+        {
+            ("Limit buy", TradingOrderType.LimitBuy),
+            ("Limit sell", TradingOrderType.LimitSell),
+            ("Stop-loss sell", TradingOrderType.StopLoss)
+        })
+        {
+            var action = new Button { Text = text };
+            action.OnPressed += _ => CreatePendingOrder(type);
+            choices.AddChild(action);
+        }
+        orders.AddChild(choices);
+        orders.AddChild(new Label { Text = "Open orders (cancel to release reserved funds or shares):" });
+        var pendingScroll = new ScrollContainer { VerticalExpand = true };
+        pendingScroll.AddChild(_pendingOrders);
+        orders.AddChild(pendingScroll);
+        tabs.AddChild(orders);
+        tabs.SetTabTitle(2, "Orders");
+
+        var newsTab = new BoxContainer { Orientation = LayoutOrientation.Vertical };
+        newsTab.AddChild(new Label { Text = "NanoNews corporate events. Actual market reactions appear only after they occur." });
+        newsTab.AddChild(_selectedNews);
+        var newsScroll = new ScrollContainer { VerticalExpand = true };
+        newsScroll.AddChild(_newsArchive);
+        newsTab.AddChild(newsScroll);
+        tabs.AddChild(newsTab);
+        tabs.SetTabTitle(3, "NanoNews");
+
         _search.OnTextChanged += _ => RefreshQuotes();
     }
 
@@ -109,10 +178,13 @@ public sealed class TradingConsoleWindow : FancyWindow
     {
         _state = state;
         _account.Text = $"Card: {state.CardName}";
-        _balance.Text = $"Available balance: {state.Balance} spesos";
+        _balance.Text = $"Available cash: {state.Balance:N0} sp | reserved by orders: {state.ReservedCash:N0} sp";
+        _portfolioStats.Text = $"Portfolio value: {state.PortfolioValue:N0} sp | Un/realized P/L: {state.UnrealizedProfit:+#,0;-#,0;0} / {state.RealizedProfit:+#,0;-#,0;0} sp";
         _news.Text = state.News;
         RefreshQuotes();
         RefreshChart();
+        RefreshPendingOrders();
+        RefreshNewsArchive();
     }
 
     private void RefreshChart()
@@ -122,13 +194,18 @@ public sealed class TradingConsoleWindow : FancyWindow
             return;
 
         _graph.History = quote.History;
+        _graph.HistoryTimes = quote.HistoryTimes;
+        _graph.EventTimes = _state!.NewsHistory.Where(n => n.Symbol == quote.Symbol).Select(n => n.PublishedSeconds).ToArray();
         _graph.SamplesToShow = _historySamples;
+        _orderStock.Text = $"Selected: {quote.Symbol} | expiration: {_orderDurationMinutes}m";
         var samples = _historySamples == 0 ? quote.History.Length : Math.Min(_historySamples, quote.History.Length);
         var window = quote.History.Skip(Math.Max(0, quote.History.Length - samples)).ToArray();
         var low = window.Length == 0 ? quote.Price : window.Min();
         var high = window.Length == 0 ? quote.Price : window.Max();
         _chartName.Text = $"{quote.Name} ({quote.Symbol}) | {quote.Price} sp | low {low} / high {high} sp";
-        _marketStats.Text = $"Market cap: {quote.MarketCap:N0} sp | Liquidity: {quote.Liquidity} shares | Spread: {quote.Spread} sp | Traded volume: {quote.Volume} shares";
+        _marketStats.Text = $"Bid: {quote.Bid} | Ask: {quote.Ask} | Spread: {quote.Spread} sp | Available: {quote.Liquidity} shares | Cap: {quote.MarketCap:N0} sp | Volume: {quote.Volume:N0}";
+        var volatility = quote.VolatilityPercent < 1 ? "Low" : quote.VolatilityPercent < 4 ? "Moderate" : quote.VolatilityPercent < 12 ? "High" : "Extreme";
+        _riskStatus.Text = $"24h change: N/A (round-only market) | Latest move: {quote.ChangePercent:+0.0;-0.0;0}% | Volatility: {volatility} ({quote.VolatilityPercent:F1}% RMS) | { (quote.HaltSeconds > 0 ? $"HALTED {quote.HaltSeconds}s" : "TRADING OPEN") }";
     }
 
     private void RefreshQuotes()
@@ -170,6 +247,67 @@ public sealed class TradingConsoleWindow : FancyWindow
             };
             line.AddChild(chartButton);
             _quotes.AddChild(line);
+        }
+    }
+
+    private void CreatePendingOrder(TradingOrderType type)
+    {
+        if (_state?.HasCard != true)
+            return;
+
+        if (!int.TryParse(_pendingQuantity.Text, out var quantity) || quantity is < 1 or > 1000 ||
+            !int.TryParse(_pendingPrice.Text, out var price) || price is < 1 or > 1000000)
+            return;
+
+        OnPendingOrder?.Invoke(_selectedSymbol, type, quantity, price, _orderDurationMinutes);
+    }
+
+    private void RefreshPendingOrders()
+    {
+        _pendingOrders.RemoveAllChildren();
+        if (_state?.HasCard != true)
+        {
+            _pendingOrders.AddChild(new Label { Text = "Insert an ID card to view orders." });
+            return;
+        }
+
+        foreach (var order in _state.Orders)
+        {
+            var row = new BoxContainer { Orientation = LayoutOrientation.Horizontal };
+            row.AddChild(new Label
+            {
+                Text = $"#{order.Id} {order.Symbol} {order.Type} x{order.Quantity} @ {order.TriggerPrice} sp | expires in {order.ExpiresInSeconds / 60}m {order.ExpiresInSeconds % 60}s",
+                HorizontalExpand = true
+            });
+            var cancel = new Button { Text = "Cancel" };
+            cancel.OnPressed += _ => OnCancelPendingOrder?.Invoke(order.Id);
+            row.AddChild(cancel);
+            _pendingOrders.AddChild(row);
+        }
+    }
+
+    private void RefreshNewsArchive()
+    {
+        _newsArchive.RemoveAllChildren();
+        if (_state == null)
+            return;
+
+        foreach (var item in _state.NewsHistory.Reverse())
+        {
+            var state = item.ResolvedSeconds == null ? "Pending reaction" :
+                $"Settled {item.ActualImpactPercent:+0.0;-0.0;0}%";
+            var open = new Button
+            {
+                Text = $"t+{item.PublishedSeconds / 60}m | {item.Symbol} | {item.Title} | {state}",
+                HorizontalExpand = true
+            };
+            open.OnPressed += _ =>
+            {
+                _selectedNews.Text = $"NanoNews: {item.Title} ({item.Symbol}) — {item.Description} | {state}";
+                _selectedSymbol = item.Symbol;
+                RefreshChart();
+            };
+            _newsArchive.AddChild(open);
         }
     }
 
