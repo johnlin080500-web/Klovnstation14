@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Content.Shared._KS14.Trading;
+using Content.Shared.GameTicking.Components;
 using Content.Shared.Access.Components;
 using Content.Shared.Cargo.Components;
 using Content.Shared.Interaction;
@@ -68,6 +69,7 @@ public sealed class TradingMarketSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<TradingConsoleComponent, InteractUsingEvent>(OnCashInserted);
+        SubscribeLocalEvent<TradingMarketImpactComponent, GameRuleStartedEvent>(OnMarketRuleStarted);
         SubscribeLocalEvent<TradingConsoleComponent, EntInsertedIntoContainerMessage>(OnContainerChanged);
         SubscribeLocalEvent<TradingConsoleComponent, EntRemovedFromContainerMessage>(OnContainerChanged);
 
@@ -93,6 +95,23 @@ public sealed class TradingMarketSystem : EntitySystem
         if (!_accounts.TryGetValue(card, out account!))
             _accounts[card] = account = new Account();
         return true;
+    }
+
+    private void OnMarketRuleStarted(EntityUid uid, TradingMarketImpactComponent component, ref GameRuleStartedEvent args)
+    {
+        // The same rule may be dispatched to more than one subscriber.
+        if (component.Triggered || !_assets.TryGetValue(component.Symbol, out var asset))
+            return;
+
+        component.Triggered = true;
+        var percent = Math.Clamp(component.Percent, -80f, 80f);
+        asset.Price = Math.Max(1, (int) Math.Round(asset.Price * (1 + percent / 100f)));
+        asset.History.Add(asset.Price);
+        if (asset.History.Count > 240)
+            asset.History.RemoveAt(0);
+
+        _news = $"MARKET ALERT: {component.Headline} ({asset.Symbol} {percent:+0.0;-0.0;0}%)";
+        UpdateAll();
     }
 
     private void OnOpened(Entity<TradingConsoleComponent> ent, ref BoundUIOpenedEvent args)
