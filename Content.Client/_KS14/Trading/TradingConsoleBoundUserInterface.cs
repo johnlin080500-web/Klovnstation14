@@ -14,6 +14,9 @@ public sealed partial class TradingConsoleBoundUserInterface(EntityUid owner, En
         _window = this.CreateWindow<TradingConsoleWindow>();
         _window.OnTrade += (symbol, qty, buy) => SendMessage(new TradingOrderMessage(symbol, qty, buy));
         _window.OnWithdraw += amount => SendMessage(new TradingWithdrawMessage(amount));
+        _window.OnPendingOrder += (symbol, type, quantity, trigger, duration) =>
+            SendMessage(new TradingPlacePendingOrderMessage(symbol, type, quantity, trigger, duration));
+        _window.OnCancelPendingOrder += id => SendMessage(new TradingCancelPendingOrderMessage(id));
         _window.OnCardAction += () => SendMessage(new ItemSlotButtonPressedEvent("trading_id"));
     }
 
