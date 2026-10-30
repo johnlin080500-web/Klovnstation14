@@ -7,3 +7,5 @@ guide-entry-datalink = Datalink
 guide-entry-shuttle-console = Shuttle Console
 guide-entry-anchorless = Anchorless
 guide-entry-chemical-fires = Chemical Fires
+
+guide-entry-trading-stock-exchange = Stock Exchange
