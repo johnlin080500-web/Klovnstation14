@@ -1,0 +1,42 @@
+<Document>
+  # Stock Exchange
+  The corporate securities exchange lets you trade fictional company shares for spesos. Buy low, sell high, and read NanoNews before placing orders.
+
+  <Box>
+    <GuideEntityEmbed Entity="ComputerTrading"/>
+    <GuideEntityEmbed Entity="TradingComputerCircuitboard"/>
+    <GuideEntityEmbed Entity="TradingConsoleFlatpack"/>
+  </Box>
+
+  ## Getting started
+  1. Insert your ID card in the exchange console. Your account follows that card during this round, so keep it safe.
+  2. To deposit, hold a stack of spesos and use it on the console while your card is inserted.
+  3. Select a company in the Market tab and choose how many shares to buy or sell.
+  4. To withdraw, open Banking, enter a whole number of spesos and press Withdraw. Money appears in your hands when possible, otherwise beside you.
+
+  ## Reading the market
+  The Market tab shows the company's last price, bid (sell price), ask (buy price), liquidity, trading volume and estimated market capitalization. The spread is the difference between bid and ask. If a company has too few available shares, a purchase cannot fill.
+
+  Select Line, Bar or Candles above the chart. Line follows reported prices; bars show each quote; candles group observations into open, high, low and close prices. Green indicates a rise and red indicates a fall. Choose a time range to change how much history is visible.
+
+  Use the mouse over the chart to inspect the price and reported round time. Gold markers indicate corporate news.
+
+  ## Orders
+  A market buy pays the current ask; a market sell receives the current bid. Both execute immediately only if trading is open and the transaction is valid.
+
+  A limit buy waits until the ask is at or below your chosen price. A limit sell waits until the bid is at or above it.
+
+  A stop-loss sell waits until the bid falls to or below your trigger. It then sells at the available bid, which can be worse than your trigger after a sudden price jump.
+
+  Pending buy orders reserve your spesos; pending sell orders reserve your shares. You can cancel an order to release them. Orders expire after your chosen duration. If a stock is halted, both immediate and pending trades must wait.
+
+  ## NanoNews and volatility
+  Corporate events first appear as NanoNews stories. Their actual price effects may arrive later. The news archive shows published reports and whether the market response has settled.
+
+  Price shocks can trigger temporary trading halts. The volatility indicator describes recent price changes, not a guarantee of future performance.
+
+  ## Tips
+  - Keep cash aside for withdrawal and future orders.
+  - A pending order may not fill if there is not enough liquidity.
+  - The exchange is a fictional simulation, not a real investment service.
+</Document>
