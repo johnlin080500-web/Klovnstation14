@@ -21,6 +21,13 @@
     - id: RandomSentience
     - id: SlimesSpawnHorde
     - id: SolarFlare
+    # KS14: NanoNews scheduled market events
+    - id: TradingCorporateContract
+    - id: TradingCorporateRecall
+    - id: TradingCorporateResearch
+    - id: TradingCorporateSanctions
+    - id: TradingCorporateCampaign
+    - id: TradingCorporateAudit
     - id: SnakeSpawnHorde
     - id: SpiderClownSpawnHorde
     - id: SpiderSpawnHorde
