@@ -71,6 +71,10 @@
   id: GiftsEngineering
   parent: CargoGiftsBase
   components:
+  - type: TradingMarketImpact
+    symbol: NT
+    percent: 11
+    headline: NanoTrasen announces new infrastructure spending
   - type: StationEvent
     weight: 5
     duration: 240
@@ -128,6 +132,10 @@
   id: GiftsMedical
   parent: CargoGiftsBase
   components:
+  - type: TradingMarketImpact
+    symbol: INT
+    percent: 14
+    headline: Interdyne wins an emergency medical supply contract
   - type: StationEvent
     weight: 8
     duration: 120

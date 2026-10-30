@@ -2,7 +2,7 @@ name: Build & Test Debug
 
 on:
   push:
-    branches: [ master, staging, stable ]
+    branches: [ master, staging, stable, feature/stock-market ] # KS14: validate stock-market feature branch
   merge_group:
   pull_request:
     types: [ opened, reopened, synchronize, ready_for_review ]
@@ -14,7 +14,7 @@ concurrency: # KS14: a newer commit supersedes a running build on the same branc
 
 jobs:
   build:
-    if: github.actor != 'PJBot' && github.event.pull_request.draft == false
+    if: github.actor != 'PJBot' # KS14: run CI on draft trading PRs so code can be verified before review
     strategy:
       fail-fast: false # KS14: one red shard must not cancel its siblings
       matrix:

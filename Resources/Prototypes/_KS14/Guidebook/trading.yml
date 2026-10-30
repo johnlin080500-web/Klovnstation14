@@ -1,0 +1,4 @@
+- type: guideEntry # KS14
+  id: TradingStockExchange
+  name: guide-entry-trading-stock-exchange
+  text: "/ServerInfo/_KS14/Guidebook/Cargo/StockTrading.xml"

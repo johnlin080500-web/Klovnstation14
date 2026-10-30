@@ -4,6 +4,7 @@
   text: "/ServerInfo/Guidebook/Cargo/Cargo.xml"
   children:
   - CargoBounties
+  - TradingStockExchange # KS14
   - Salvage
 
 - type: guideEntry
