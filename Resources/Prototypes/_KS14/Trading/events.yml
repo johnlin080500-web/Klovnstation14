@@ -1,0 +1,109 @@
+# NanoNews corporate releases. Scheduled as ordinary mid-round station events.
+# Impact comes 1-15 minutes AFTER the news article is published.
+- type: entity
+  parent: BaseStationEvent
+  id: TradingCorporateContract
+  name: NanoTrasen strategic contract
+  components:
+  - type: StationEvent
+    weight: 3
+    earliestStart: 10
+    duration: 1
+  - type: TradingCorporateNewsRule
+    symbol: NT
+    minPercent: 4
+    maxPercent: 16
+    minDelaySeconds: 60
+    maxDelaySeconds: 300
+    title: NanoTrasen secures contract
+    body: NanoTrasen reports a newly awarded infrastructure contract. Analysts expect a positive earnings revision in the next several minutes, although the size of the market reaction remains uncertain.
+
+- type: entity
+  parent: BaseStationEvent
+  id: TradingCorporateRecall
+  name: Interdyne pharmaceutical recall
+  components:
+  - type: StationEvent
+    weight: 3
+    earliestStart: 15
+    duration: 1
+  - type: TradingCorporateNewsRule
+    symbol: INT
+    minPercent: -42
+    maxPercent: -15
+    minDelaySeconds: 120
+    maxDelaySeconds: 480
+    title: Interdyne recalls medication
+    body: Interdyne Pharmaceutics faces a product safety investigation and a costly medicine recall. Negative earnings pressure may emerge over the next several minutes.
+
+- type: entity
+  parent: BaseStationEvent
+  id: TradingCorporateResearch
+  name: CyberSun breakthrough
+  components:
+  - type: StationEvent
+    weight: 2
+    earliestStart: 20
+    duration: 1
+  - type: TradingCorporateNewsRule
+    symbol: CYB
+    minPercent: 20
+    maxPercent: 55
+    minDelaySeconds: 180
+    maxDelaySeconds: 720
+    title: CyberSun reports breakthrough
+    body: CyberSun Industries claims a major prototype breakthrough. Unconfirmed production costs could lead to a substantial positive revaluation within 3 to 12 minutes.
+
+- type: entity
+  parent: BaseStationEvent
+  id: TradingCorporateSanctions
+  name: Gorlex sanctions
+  components:
+  - type: StationEvent
+    weight: 1
+    earliestStart: 25
+    duration: 1
+  - type: TradingCorporateNewsRule
+    symbol: GRLX
+    minPercent: -70
+    maxPercent: -35
+    minDelaySeconds: 300
+    maxDelaySeconds: 900
+    title: Gorlex under trade sanctions
+    body: Regulators announce sweeping restrictions on Gorlex Marauders assets. The market faces severe downside risk over the next 5 to 15 minutes.
+
+- type: entity
+  parent: BaseStationEvent
+  id: TradingCorporateCampaign
+  name: Donk product campaign
+  components:
+  - type: StationEvent
+    weight: 5
+    earliestStart: 8
+    duration: 1
+  - type: TradingCorporateNewsRule
+    symbol: DONK
+    minPercent: 1
+    maxPercent: 8
+    minDelaySeconds: 60
+    maxDelaySeconds: 240
+    title: Donk launches snack campaign
+    body: Donk Corporation starts a widespread promotion. Economists anticipate a modest revenue bump as retail demand adjusts.
+
+- type: entity
+  parent: BaseStationEvent
+  id: TradingCorporateAudit
+  name: Waffle audit
+  components:
+  - type: StationEvent
+    weight: 4
+    earliestStart: 12
+    duration: 1
+  - type: TradingCorporateNewsRule
+    symbol: WAFL
+    minPercent: -20
+    maxPercent: -5
+    minDelaySeconds: 120
+    maxDelaySeconds: 360
+    title: Waffle faces an audit
+    body: Waffle Corporation discloses irregular invoices ahead of an external audit. Analysts expect moderate downside over the next 2 to 6 minutes.
