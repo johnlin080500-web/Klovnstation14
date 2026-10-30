@@ -5,6 +5,7 @@
     - id: BoxEncryptionKeyCargo
     - id: BoxFolderQmClipboard
     - id: BoxQMCircuitboards
+    - id: TradingConsoleFlatpack
     - id: BoxQMStamps
     - id: CigPackGreen
       prob: 0.50
